@@ -36,7 +36,7 @@ runServer = CN.runTCPServer settings safeHandler
   where
     settings = CN.serverSettings port ipAddr
     port = 5000
-    ipAddr = "*"
+    ipAddr = "127.0.0.1"
 
     safeHandler appData =
       Async.runConcurrently

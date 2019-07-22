@@ -37,7 +37,7 @@ runServer = CN.runTCPServer settings handler
   where
     settings = CN.serverSettings port ipAddr
     port = 5000
-    ipAddr = "*"
+    ipAddr = "127.0.0.1"
 
     handler appData = do
       C.runConduit
