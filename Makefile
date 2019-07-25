@@ -19,7 +19,7 @@ install:
 	$(stack) install
 
 ghci:
-	$(stack) ghci $(package):lib 
+	$(stack) ghci $(package):lib
 
 test:
 	$(stack) test $(package)
@@ -31,7 +31,7 @@ bench:
 	$(stack) bench $(package)
 
 ghcid:
-	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --ghci-options='-fobject-code -fno-warn-unused-do-bind' --main-is $(package):$(package)"
+	$(stack) exec -- ghcid -c "stack ghci $(package):lib --test --ghci-options='-fobject-code -fno-warn-unused-imports -fno-warn-unused-do-bind' --main-is $(package):$(package)"
 
 dev-deps:
 	stack build ghcid
