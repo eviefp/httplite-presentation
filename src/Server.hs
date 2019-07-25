@@ -33,11 +33,18 @@ import           System.FilePath
 -- runServer
 
 runServer :: IO ()
-runServer = CN.runTCPServer settings handler
+runServer = CN.runTCPServer settings safeHandler
   where
     settings = CN.serverSettings port ipAddr
     port = 5000
     ipAddr = "*"
+
+    safeHandler appData =
+        Async.runConcurrently
+          $ Async.Concurrently
+             (threadDelay (1000000 * 30))
+          <|> Async.Concurrently
+              (handler appData)
 
     handler appData = do
       request <- C.runConduit
@@ -99,8 +106,8 @@ respond NotImplemented =
   pure "HTTP/1.1 501 Not Implemented\r\n"
 respond (GetRequest path range) = do
   let filepath = basePath </> path
-  fileExists <- doesPathExist filepath
-  if fileExists
+  isAllowed <- checkPath filepath
+  if isAllowed
      then do
         content <- readFile' filepath range
         pure
@@ -111,7 +118,14 @@ respond (GetRequest path range) = do
       else
         pure "HTTP/1.1 404 Not Found\r\n"
   where
-    readFile' path Nothing = BS.readFile path
-    readFile' path (Just (start, end)) = do
-        content <- BS.readFile path
+    readFile' path' Nothing = BS.readFile path'
+    readFile' path' (Just (start, end)) = do
+        content <- BS.readFile path'
         pure $ BS.take (end - start) $ BS.drop start $ content
+
+    checkPath :: FilePath -> IO Bool
+    checkPath filepath = do
+        canonicPath <- canonicalizePath filepath
+        if basePath `isPrefixOf` canonicPath
+           then doesPathExist canonicPath
+           else pure False
